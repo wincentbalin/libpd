@@ -27,7 +27,8 @@ else
       -Wl,--out-implib=libs/libpd.lib
     CSHARP_LDFLAGS = $(MINGW_LDFLAGS) -Wl,--output-def=libs/libpdcsharp.def \
       -static-libgcc -Wl,--out-implib=libs/libpdcsharp.lib
-    CPP_LDFLAGS = $(LDFLAGS)
+    CPP_LDFLAGS = $(MINGW_LDFLAGS) -Wl,--output-def=libs/libpdcpp.def \
+      -static-libgcc -Wl,--out-implib=libs/libpdcpp.lib
     JAVA_LDFLAGS = $(MINGW_LDFLAGS) -Wl,--kill-at
   else  # Assume Linux
     SOLIB_EXT = so
@@ -193,17 +194,25 @@ clobber: clean
 	rm -f libs/`basename $(PDJAVA_NATIVE)`
 	rm -rf $(PDJAVA_BUILD)
 
+# try to detect what's been built
 install:
-	mkdir -p $(prefix)/include/libpd
-	install libpd_wrapper/z_libpd.h $(prefix)/include/libpd
-	install pure-data/src/m_pd.h $(prefix)/include/libpd
-	mkdir -p $(prefix)/include/libpd/util
-	install libpd_wrapper/util/z_print_util.h $(prefix)/include/libpd/util
-	install libpd_wrapper/util/z_queued.h $(prefix)/include/libpd/util
-	install $(LIBPD) $(prefix)/lib
+	mkdir -p $(prefix)/include/libpd/
+	install libpd_wrapper/z_libpd.h $(prefix)/include/libpd/
+	install pure-data/src/m_pd.h $(prefix)/include/libpd/
+	mkdir -p $(prefix)/include/libpd/util/
+	install libpd_wrapper/util/z_print_util.h $(prefix)/include/libpd/util/
+	install libpd_wrapper/util/z_queued.h $(prefix)/include/libpd/util/
+	mkdir -p $(prefix)/lib/
+	if [ -e $(LIBPD) ]; then \
+		install $(LIBPD) $(prefix)/lib/; \
+		test -e ${LIBPD:.$(SOLIB_EXT)=.def} && install ${LIBPD:.$(SOLIB_EXT)=.def} $(prefix)/lib/; \
+		test -e ${LIBPD:.$(SOLIB_EXT)=.lib} && install ${LIBPD:.$(SOLIB_EXT)=.lib} $(prefix)/lib/; \
+	fi
 	if [ -e $(PDCPP) ]; then \
-		install cpp/*.hpp $(prefix)/include/libpd; \
-		install $(PDCPP) $(prefix)/lib; \
+		install cpp/*.hpp $(prefix)/include/libpd/; \
+		install $(PDCPP) $(prefix)/lib/; \
+		test -e ${PDCPP:.$(SOLIB_EXT)=.def} && install ${PDCPP:.$(SOLIB_EXT)=.def} $(prefix)/lib/; \
+		test -e ${PDCPP:.$(SOLIB_EXT)=.lib} && install ${PDCPP:.$(SOLIB_EXT)=.lib} $(prefix)/lib/; \
 	fi
 
 uninstall:
