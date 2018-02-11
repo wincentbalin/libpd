@@ -50,3 +50,8 @@ packages/*
 java-build/*
 javadoc
 libs/libpd-sources*
+
+# qt
+*.pro.user
+samples/qt/build-*
+
